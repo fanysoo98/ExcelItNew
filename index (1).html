@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExcelIt — Smart Spreadsheet Cleaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Landing -->
+<div id="landing">
+  <nav class="nav">
+    <div class="brand">Excel<span>It</span></div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#" onclick="openUploadModal();return false;">Try it free</a>
+    </div>
+  </nav>
+  <section class="hero">
+    <div class="hero-tag">No Excel formulas required</div>
+    <h1>Your spreadsheet,<br><em>cleaned up.</em></h1>
+    <p class="hero-sub">Upload your file. Fix names, remove duplicates, merge sheets with auto VLOOKUP — all in clicks, not formulas.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="openUploadModal()"><i class="ti ti-upload"></i> Upload your file</button>
+      <button class="btn-ghost" onclick="loadDemo()"><i class="ti ti-player-play"></i> Try demo data</button>
+    </div>
+    <div class="hero-badges">
+      <span><i class="ti ti-check"></i> No sign-up needed</span>
+      <span><i class="ti ti-check"></i> Works in browser</span>
+      <span><i class="ti ti-check"></i> Your data stays private</span>
+    </div>
+  </section>
+  <section class="features" id="features">
+    <div class="features-grid">
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-user-edit"></i></div><h3>Name cleanup</h3><p>Capitalize, formalize to academic format, combine columns, and flag bracket entries like "Judy W (Part-time)".</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-copy-off"></i></div><h3>Duplicate detection</h3><p>Highlight or remove duplicates with fuzzy matching — catches "Sarah" and "sarah obrien" as the same person.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-table-import"></i></div><h3>Auto VLOOKUP</h3><p>Match and merge two sheets using a primary + secondary identifier. No formula writing, ever.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-sort-ascending-letters"></i></div><h3>Sort & filter</h3><p>Sort alphabetically, jump to any letter, filter by column values or flag type in one click.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-mail"></i></div><h3>Email tools</h3><p>Validate addresses, extract domains, normalize formatting, and detect missing contact info.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-math-function"></i></div><h3>Formula finder</h3><p>Search any data scenario — get the right Excel formula with plain-English explanation.</p></div>
+    </div>
+  </section>
+</div>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="modal-overlay" style="display:none">
+  <div class="modal-box" id="uploadModalBox">
+    <button class="modal-close" onclick="closeUploadModal()"><i class="ti ti-x"></i></button>
+    <div class="modal-logo">Excel<span>It</span></div>
+    <h2 class="modal-title">Let's clean your spreadsheet</h2>
+    <p class="modal-sub">Upload an Excel or CSV file — your data never leaves your browser.</p>
+    <label class="modal-drop" for="fileInputModal" id="modalDropZone">
+      <div class="modal-drop-icon"><i class="ti ti-file-spreadsheet"></i></div>
+      <div class="modal-drop-text">Drag & drop your file here</div>
+      <div class="modal-drop-sub">or click to browse</div>
+      <div class="modal-drop-types">.xlsx &nbsp;·&nbsp; .xls &nbsp;·&nbsp; .csv</div>
+    </label>
+    <input type="file" id="fileInputModal" accept=".xlsx,.xls,.csv" style="display:none">
+    <div class="modal-divider"><span>or</span></div>
+    <button class="modal-demo-btn" onclick="loadDemo()"><i class="ti ti-player-play"></i> Try with demo data instead</button>
+    <div class="modal-privacy"><i class="ti ti-shield-check"></i> Processed locally — nothing is uploaded to any server.</div>
+  </div>
+</div>
+
+<!-- Scan Results Modal (shown after file loads) -->
+<div id="scanModal" class="modal-overlay" style="display:none">
+  <div class="modal-box scan-box">
+    <div class="scan-header">
+      <div class="scan-icon"><i class="ti ti-clipboard-check"></i></div>
+      <div>
+        <div class="scan-title">Scan complete</div>
+        <div class="scan-file" id="scanFileName">—</div>
+      </div>
+    </div>
+    <div class="scan-summary" id="scanSummary"></div>
+    <div class="scan-issues" id="scanIssues"></div>
+    <div class="scan-actions">
+      <button class="scan-btn-secondary" onclick="closeScanModal()">Review manually</button>
+      <button class="scan-btn-primary" onclick="closeScanAndFix()"><i class="ti ti-wand"></i> Take me to the fixes</button>
+    </div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo" onclick="showLanding()">Excel<span>It</span></div>
+      <div class="sidebar-section-label">Clean</div>
+      <div class="sidebar-item active" data-panel="names"><i class="ti ti-user-edit"></i> Name cleanup</div>
+      <div class="sidebar-item" data-panel="dupes"><i class="ti ti-copy-off"></i> Duplicates</div>
+      <div class="sidebar-section-label">Lookup</div>
+      <div class="sidebar-item" data-panel="vlookup"><i class="ti ti-table-import"></i> Auto VLOOKUP <span class="sidebar-new">New</span></div>
+      <div class="sidebar-section-label">Organize</div>
+      <div class="sidebar-item" data-panel="filter"><i class="ti ti-sort-ascending-letters"></i> Sort & filter</div>
+      <div class="sidebar-item" data-panel="more"><i class="ti ti-wand"></i> More fixes</div>
+      <div class="sidebar-section-label">Tools</div>
+      <div class="sidebar-item" data-panel="formula"><i class="ti ti-math-function"></i> Formula finder</div>
+      <div class="sidebar-spacer"></div>
+      <label class="upload-area" for="fileInputSidebar">
+        <i class="ti ti-upload"></i><span id="uploadLabel">Upload new file</span>
+      </label>
+      <input type="file" id="fileInputSidebar" accept=".xlsx,.xls,.csv" style="display:none">
+      <div class="sidebar-export">
+        <button class="btn-export" onclick="exportFile()"><i class="ti ti-download"></i> Export clean file</button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="file-name" id="fileName">—</span>
+          <div class="sheet-tabs" id="sheetTabs"></div>
+        </div>
+        <div class="topbar-right" id="topbarBadges"></div>
+      </div>
+
+      <div class="workspace">
+        <div class="table-col">
+          <div class="table-toolbar">
+            <div class="search-wrap">
+              <i class="ti ti-search"></i>
+              <input type="text" id="searchInput" placeholder="Search names or emails…" oninput="filterTable()">
+              <button class="clear-search" id="clearSearch" onclick="clearSearchInput()" style="display:none"><i class="ti ti-x"></i></button>
+            </div>
+            <div class="sort-btns">
+              <button class="sort-btn active" id="sortAZ" onclick="sortTable('az')"><i class="ti ti-sort-ascending-letters"></i> A→Z</button>
+              <button class="sort-btn" id="sortZA" onclick="sortTable('za')"><i class="ti ti-sort-descending-letters"></i> Z→A</button>
+            </div>
+          </div>
+          <div class="az-bar" id="azBar"></div>
+          <div class="table-wrap">
+            <table id="dataTable">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+            <div class="table-empty" id="tableEmpty" style="display:none">
+              <i class="ti ti-search-off"></i><span>No rows match your search</span>
+            </div>
+          </div>
+          <div class="table-actions">
+            <button class="tbl-btn" onclick="addNewRow()"><i class="ti ti-row-insert-bottom"></i> Add row</button>
+            <button class="tbl-btn" onclick="hideSelected()"><i class="ti ti-eye-off"></i> Hide selected</button>
+            <button class="tbl-btn" onclick="removeSelected()"><i class="ti ti-trash"></i> Remove</button>
+            <button class="tbl-btn primary" onclick="applyAll()"><i class="ti ti-check"></i> Apply all fixes</button>
+          </div>
+        </div>
+
+        <div class="panel-col">
+          <div class="panel-tabs">
+            <div class="panel-tab active" data-tab="names"><i class="ti ti-user-edit"></i><span>Names</span></div>
+            <div class="panel-tab" data-tab="dupes"><i class="ti ti-copy-off"></i><span>Dupes</span></div>
+            <div class="panel-tab" data-tab="vlookup"><i class="ti ti-table-import"></i><span>VLOOKUP</span></div>
+            <div class="panel-tab" data-tab="filter"><i class="ti ti-filter"></i><span>Filter</span></div>
+            <div class="panel-tab" data-tab="more"><i class="ti ti-wand"></i><span>More</span></div>
+            <div class="panel-tab" data-tab="formula"><i class="ti ti-math-function"></i><span>Formula</span></div>
+          </div>
+
+          <div class="panel-body active" id="panel-names">
+            <div class="alert-banner" id="bracketAlert" style="display:none">
+              <i class="ti ti-alert-triangle"></i>
+              <div><strong id="bracketCount">0 bracket names</strong><span>Entries with "(…)" — may be incomplete</span></div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Combine name columns</div>
+              <div class="panel-desc">Map your existing columns, pick an output format</div>
+              <div class="combine-row">
+                <select id="firstNameCol" class="col-select"></select>
+                <div class="plus-circle"><i class="ti ti-plus"></i></div>
+                <select id="lastNameCol" class="col-select"></select>
+              </div>
+              <div class="panel-label">Output format</div>
+              <div class="option-list" id="combineFormatList">
+                <div class="opt-item active" data-value="last-first"><i class="ti ti-school"></i><div><div class="opt-title">Academic — Last, First</div><div class="opt-sub">Wong, Judy</div></div></div>
+                <div class="opt-item" data-value="first-last"><i class="ti ti-user"></i><div><div class="opt-title">Natural — First Last</div><div class="opt-sub">Judy Wong</div></div></div>
+                <div class="opt-item" data-value="first-only"><i class="ti ti-id-badge"></i><div><div class="opt-title">First name only</div><div class="opt-sub">Judy</div></div></div>
+                <div class="opt-item" data-value="last-only"><i class="ti ti-id-badge"></i><div><div class="opt-title">Last name only</div><div class="opt-sub">Wong</div></div></div>
+              </div>
+              <div class="preview-line" id="combinePreview"><i class="ti ti-eye"></i> Preview: —</div>
+              <label class="check-label"><input type="checkbox" id="keepOrigCols" checked> Keep original columns</label>
+              <button class="panel-btn" onclick="combineNames()"><i class="ti ti-columns"></i> Combine columns</button>
+            </div>
+            <div class="divider"></div>
+            <div class="panel-section">
+              <div class="panel-section-title">Format existing name column</div>
+              <select id="nameFormatCol" class="col-select" style="width:100%;margin-bottom:8px"></select>
+              <div class="option-list" id="nameFormatList">
+                <div class="opt-item active" data-value="last-first"><i class="ti ti-school"></i><div><div class="opt-title">Academic — Last, First</div><div class="opt-sub">Wong, Judy</div></div></div>
+                <div class="opt-item" data-value="proper"><i class="ti ti-user"></i><div><div class="opt-title">Proper case</div><div class="opt-sub">Judy Wong</div></div></div>
+                <div class="opt-item" data-value="upper"><i class="ti ti-letter-case"></i><div><div class="opt-title">ALL CAPS</div><div class="opt-sub">JUDY WONG</div></div></div>
+                <div class="opt-item" data-value="lower"><i class="ti ti-letter-case-lower"></i><div><div class="opt-title">lowercase</div><div class="opt-sub">judy wong</div></div></div>
+              </div>
+              <button class="panel-btn" onclick="formatNames()"><i class="ti ti-wand"></i> Apply format</button>
+            </div>
+            <div class="divider"></div>
+            <div class="panel-section">
+              <div class="panel-section-title">Bracket handling</div>
+              <div class="option-list" id="bracketHandlingList">
+                <div class="opt-item active" data-value="highlight"><i class="ti ti-highlight"></i><div><div class="opt-title">Highlight & flag</div><div class="opt-sub">Mark for manual review</div></div></div>
+                <div class="opt-item" data-value="strip"><i class="ti ti-scissors"></i><div><div class="opt-title">Strip bracket content</div><div class="opt-sub">Remove "(…)" from name</div></div></div>
+              </div>
+              <button class="panel-btn" onclick="handleBrackets()"><i class="ti ti-alert-triangle"></i> Handle brackets</button>
+            </div>
+          </div>
+
+          <div class="panel-body" id="panel-dupes">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-num" id="dupeCount">—</div><div class="stat-label">Duplicates</div></div>
+              <div class="stat-card"><div class="stat-num" id="totalRows">—</div><div class="stat-label">Total rows</div></div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Match duplicates on</div>
+              <div id="dupeMatchCols"></div>
+              <label class="check-label"><input type="checkbox" id="fuzzyMatch"> Fuzzy match <span class="hint">(sarah ≈ Sarah O'Brien)</span></label>
+            </div>
+            <div class="divider"></div>
+            <div class="panel-section">
+              <div class="panel-section-title">Action</div>
+              <div class="option-list" id="dupeActionList">
+                <div class="opt-item active" data-value="highlight"><i class="ti ti-highlight"></i><div><div class="opt-title">Highlight only</div><div class="opt-sub">Flag rows for review</div></div></div>
+                <div class="opt-item" data-value="remove"><i class="ti ti-trash"></i><div><div class="opt-title">Remove duplicates</div><div class="opt-sub">Keep first occurrence</div></div></div>
+              </div>
+              <button class="panel-btn" onclick="findDuplicates()"><i class="ti ti-copy-off"></i> Find duplicates</button>
+            </div>
+          </div>
+
+          <div class="panel-body" id="panel-vlookup">
+            <div class="merge-vis">
+              <div class="merge-sheet"><strong>Sheet 1</strong><span id="s1cols">—</span></div>
+              <div class="merge-op"><i class="ti ti-plus"></i></div>
+              <div class="merge-sheet"><strong>Sheet 2</strong><span id="s2cols">—</span></div>
+            </div>
+            <div class="merge-arrow">↓ matched on identifier keys</div>
+            <div class="merge-result-box">Merged sheet</div>
+            <div class="panel-section">
+              <div class="panel-section-title">Primary identifier <span class="required">required</span></div>
+              <div class="key-box primary-key">
+                <div class="key-header"><div class="key-badge primary">1</div><div class="key-name">Primary key</div></div>
+                <div class="key-desc">Main column used to match rows between sheets</div>
+                <select id="primaryKey" class="col-select" style="width:100%;margin-bottom:6px" onchange="updateReliability()"></select>
+                <div class="reliability-label">Match reliability</div>
+                <div class="reliability-bar"><div class="reliability-fill" id="reliabilityFill"></div></div>
+                <div class="reliability-text" id="reliabilityText">Select a column</div>
+              </div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Secondary identifier <span class="optional">optional</span></div>
+              <div class="key-box secondary-key">
+                <div class="key-header"><div class="key-badge secondary">2</div><div class="key-name">Fallback / confirmation key</div></div>
+                <div class="key-desc">Double-confirm or use when primary is blank</div>
+                <select id="secondaryKey" class="col-select" style="width:100%;margin-bottom:8px"><option value="">None</option></select>
+                <div class="option-list" id="secondaryModeList">
+                  <div class="opt-item active" data-value="confirm"><i class="ti ti-shield-check"></i><div><div class="opt-title">Confirm match</div><div class="opt-sub">Both keys must match</div></div></div>
+                  <div class="opt-item" data-value="fallback"><i class="ti ti-replace"></i><div><div class="opt-title">Fallback only</div><div class="opt-sub">Use if primary is blank</div></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Columns to pull from Sheet 2</div>
+              <div id="sheet2Cols" class="check-list"></div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Mode</div>
+              <div class="option-list" id="vlookupModeList">
+                <div class="opt-item active" data-value="pull"><i class="ti ti-table-import"></i><div><div class="opt-title">Pull into Sheet 1</div><div class="opt-sub">VLOOKUP — keep base</div></div></div>
+                <div class="opt-item" data-value="merge"><i class="ti ti-table-plus"></i><div><div class="opt-title">Combine into new sheet</div><div class="opt-sub">Full merge of both sheets</div></div></div>
+              </div>
+              <button class="panel-btn" onclick="runVlookup()"><i class="ti ti-table-import"></i> Run auto VLOOKUP</button>
+            </div>
+          </div>
+
+          <div class="panel-body" id="panel-filter">
+            <div class="panel-section">
+              <div class="panel-section-title">Sort by</div>
+              <select id="sortCol" class="col-select" style="width:100%;margin-bottom:6px" onchange="applySortCol()"><option value="">Choose column…</option></select>
+              <div class="sort-dir-btns">
+                <button class="sort-dir active" id="sortAsc" onclick="setSortDir('asc')"><i class="ti ti-sort-ascending-letters"></i> A → Z</button>
+                <button class="sort-dir" id="sortDesc" onclick="setSortDir('desc')"><i class="ti ti-sort-descending-letters"></i> Z → A</button>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="panel-section">
+              <div class="panel-section-title">Jump to letter</div>
+              <div class="az-filter-strip" id="azFilterStrip"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="panel-section">
+              <div class="panel-section-title">Show only</div>
+              <label class="check-label"><input type="checkbox" id="showDupes" onchange="applyFilters()"> Duplicates only</label>
+              <label class="check-label"><input type="checkbox" id="showBrackets" onchange="applyFilters()"> Bracket names only</label>
+              <label class="check-label"><input type="checkbox" id="showClean" onchange="applyFilters()"> Clean rows only</label>
+            </div>
+          </div>
+
+          <div class="panel-body" id="panel-more">
+            <div class="panel-section">
+              <div class="panel-section-title">Contact fixes</div>
+              <div class="more-item" onclick="trimWhitespace()"><i class="ti ti-space"></i><div><div class="opt-title">Trim whitespace</div><div class="opt-sub">Remove extra spaces in all cells</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+              <div class="more-item" onclick="validateEmails()"><i class="ti ti-mail"></i><div><div class="opt-title">Validate emails</div><div class="opt-sub">Flag malformed addresses</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+              <div class="more-item" onclick="extractDomain()"><i class="ti ti-at"></i><div><div class="opt-title">Extract email domain</div><div class="opt-sub">→ new column</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Data structure</div>
+              <div class="more-item" onclick="splitNameCol()"><i class="ti ti-columns"></i><div><div class="opt-title">Split name column</div><div class="opt-sub">Full Name → First + Last</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+              <div class="more-item" onclick="detectMissing()"><i class="ti ti-spy"></i><div><div class="opt-title">Detect missing data</div><div class="opt-sub">Highlight blank cells by column</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+              <div class="more-item" onclick="addRowIds()"><i class="ti ti-list-numbers"></i><div><div class="opt-title">Add unique row IDs</div><div class="opt-sub">Auto-generate IDs</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+              <div class="more-item" onclick="maskSensitive()"><i class="ti ti-lock"></i><div><div class="opt-title">Mask sensitive data</div><div class="opt-sub">Blur email/phone for sharing</div></div><i class="ti ti-chevron-right more-arrow"></i></div>
+            </div>
+          </div>
+
+          <div class="panel-body" id="panel-formula">
+            <div class="panel-section">
+              <div class="panel-section-title">Search for a formula</div>
+              <div class="formula-search">
+                <i class="ti ti-search"></i>
+                <input type="text" id="formulaSearch" placeholder="e.g. count unique names…" oninput="searchFormulas()">
+              </div>
+            </div>
+            <div id="formulaResults"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
